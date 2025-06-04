@@ -17,3 +17,4 @@ __pycache__/
 # Credentials
 *.pem
 .env
+terraform/service-account.json
