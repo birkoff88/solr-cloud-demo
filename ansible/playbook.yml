@@ -1,0 +1,94 @@
+- name: Configure Solr host with full monitoring
+  hosts: solr
+  become: true
+
+  tasks:
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: true
+
+    - name: Ensure Docker is started
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Create Docker network for monitoring
+      docker_network:
+        name: monitoring
+        state: present
+
+    - name: Run Solr container
+      docker_container:
+        name: solr
+        image: solr:8
+        ports:
+          - "8983:8983"
+        state: started
+        restart_policy: always
+        networks:
+          - name: monitoring
+
+    - name: Run Node Exporter container
+      docker_container:
+        name: node-exporter
+        image: prom/node-exporter
+        ports:
+          - "9100:9100"
+        state: started
+        restart_policy: always
+        networks:
+          - name: monitoring
+
+    - name: Copy Solr config (for demo handler)
+      copy:
+        src: solr-config.xml
+        dest: /tmp/solr-config.xml
+      notify:
+        - Restart Solr container
+
+    - name: Copy Prometheus config
+      copy:
+        src: prometheus.yml
+        dest: /tmp/prometheus.yml
+      notify:
+        - Restart Prometheus
+
+    - name: Run Prometheus container
+      docker_container:
+        name: prometheus
+        image: prom/prometheus
+        ports:
+          - "9090:9090"
+        volumes:
+          - /tmp/prometheus.yml:/etc/prometheus/prometheus.yml
+        state: started
+        restart_policy: always
+        networks:
+          - name: monitoring
+
+    - name: Run Grafana container
+      docker_container:
+        name: grafana
+        image: grafana/grafana
+        ports:
+          - "3000:3000"
+        state: started
+        restart_policy: always
+        networks:
+          - name: monitoring
+
+  handlers:
+    - name: Restart Solr container
+      docker_container:
+        name: solr
+        state: started
+        restart: true
+
+    - name: Restart Prometheus
+      docker_container:
+        name: prometheus
+        state: started
+        restart: true
