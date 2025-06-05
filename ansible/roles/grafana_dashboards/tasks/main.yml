@@ -1,0 +1,28 @@
+- name: Create provisioning directory structure
+  file:
+    path: "/etc/grafana/provisioning/{{ item }}"
+    state: directory
+    recurse: yes
+  loop:
+    - datasources
+    - dashboards
+
+- name: Copy datasource provisioning config
+  copy:
+    src: datasource.yml
+    dest: /etc/grafana/provisioning/datasources/datasource.yml
+
+- name: Copy dashboards provisioning config
+  copy:
+    src: dashboards.yml
+    dest: /etc/grafana/provisioning/dashboards/dashboards.yml
+
+- name: Copy all dashboards
+  copy:
+    src: dashboards/
+    dest: /etc/grafana/provisioning/dashboards/json/
+
+- name: Copy Node Exporter Full dashboard
+  copy:
+    src: dashboards/1860_rev40.json
+    dest: /etc/grafana/provisioning/dashboards/json/1860_rev40.json

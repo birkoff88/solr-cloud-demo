@@ -1,0 +1,11 @@
+- name: Restart Solr container
+  docker_container:
+    name: solr
+    state: started
+    restart: true
+
+- name: Restart Prometheus
+  docker_container:
+    name: prometheus
+    state: started
+    restart: true

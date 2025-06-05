@@ -1,0 +1,12 @@
+- name: Run Grafana container
+  docker_container:
+    name: grafana
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - /etc/grafana/provisioning/:/etc/grafana/provisioning/
+    state: started
+    restart_policy: always
+    networks:
+      - name: monitoring
